@@ -6,6 +6,20 @@ body{
   -moz-box-sizing: border-box;
   box-sizing: border-box;
 }
+.header {
+  height:100px;
+  width: 100%;
+  text-align: center;
+  padding: 30px;
+  font-size: 35px;
+  font-family: Righteous;
+}
+.home {
+  position: absolute;
+  left: 90%;
+  top: -0.5%;
+  font-size: 40px;
+}
 .newGame{
   position:relative;
   left:40%;

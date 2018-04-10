@@ -31,6 +31,12 @@ footer, header, hgroup, menu, nav, section {
 body {
 	line-height: 1;
 }
+.home {
+  position: absolute;
+  left: 90%;
+  top: ;
+  font-size: 40px;
+}
 ol, ul {
 	list-style: none;
 }
