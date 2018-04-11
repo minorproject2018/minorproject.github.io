@@ -34,8 +34,10 @@ body {
 .home {
   position: absolute;
   left: 90%;
-  top: ;
-  font-size: 40px;
+  height: 20px;
+	width: 20px;
+  font-size: 30px;
+	text-decoration: none;
 }
 ol, ul {
 	list-style: none;

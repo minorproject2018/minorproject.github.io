@@ -68,7 +68,13 @@
  border: 5px solid black;
   border-radius:5px;
   margin: 30px;
+  -webkit-animation: zoom 0.8s ease-in;
+  -ms-animation: zoom 0.8s ease-in;
+  animation: zoom 0.8s ease-in;
 
+}
+.state-inner1:hover {
+  transform: scale(1.05)
 }
 .state-inner2 {
   position: relative;
@@ -78,18 +84,28 @@
  border: 5px solid black;
   border-radius:5px;
    margin: 20px;
+   -webkit-animation: zoom 0.8s ease-in;
+   -ms-animation: zoom 0.8s ease-in;
+   animation: zoom 0.8s ease-in;
+}
+.state-inner2:hover {
+  transform: scale(1.05)
 }
 .state-inner3 {
   position: relative;
   right:0%;
-  width: 200px;
+  width: 290px;
   height: 150px;
    border: 5px solid black;
   border-radius:5px;
    margin: 10px;
+   font-size: 18px;
+  }
+  a {
+    text-decoration: none;
 
 
-}
+  }
 img{
   width:180px;
   height:140px;
@@ -105,4 +121,35 @@ em{
   color:black;
 
 
+}
+/*animation*/
+@keyframes zoom {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1
+  }
+}
+@-webkit-keyframes zoom {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1
+  }
+}
+@-moz-keyframes zoom {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1
+  }
 }
