@@ -133,7 +133,7 @@ em{
   }
   to {
     transform: scale(1);
-    opacity: 1
+    opacity: 1;
   }
 }
 @-webkit-keyframes zoom {
@@ -143,7 +143,7 @@ em{
   }
   to {
     transform: scale(1);
-    opacity: 1
+    opacity: 1;
   }
 }
 @-moz-keyframes zoom {
@@ -153,6 +153,6 @@ em{
   }
   to {
     transform: scale(1);
-    opacity: 1
+    opacity: 1;
   }
 }
