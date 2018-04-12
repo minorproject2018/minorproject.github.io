@@ -13,3 +13,11 @@ canvas{
   margin:0;
   padding-left:0;
 }
+.home{
+  position: absolute;
+  left: 90%;
+  height: 20px;
+  width: 20px;
+  font-size: 30px;
+  text-decoration: none;
+}
