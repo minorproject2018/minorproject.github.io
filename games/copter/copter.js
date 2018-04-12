@@ -1,213 +1,115 @@
-var imagePart = (function() {
-    return function(x, y, rows, columns, img, special) {
-        var _x = x, _y = y;
-        var _posX = x, _posY = y;
-        var _offsetX, _offsetY;
-        var _rows = rows, _columns = columns;
-        var _special = special;
-        var _img = img;
+var mainState = {
+    preload: function(){
+        game.load.image("bird", "https://res.cloudinary.com/jajoosam/image/upload/v1493549938/copter_fimubx.png");
+        game.load.image("pipe", "https://res.cloudinary.com/jajoosam/image/upload/v1493549937/pipe_eu3mgl.png");
+        game.load.audio('jump', 'https://res.cloudinary.com/jajoosam/video/upload/v1493550231/jump_kuyusj.wav', "https://res.cloudinary.com/jajoosam/video/upload/v1493620286/jump_bolljl.ogg"); 
+    },
+    create: function(){
+        game.stage.backgroundColor = "#EEE";
+        game.physics.startSystem(Phaser.Physics.ARCADE);
+        this.bird = game.add.sprite(100,100, "bird");
+        game.physics.arcade.enable(this.bird);
+        this.bird.body.gravity.y = 500;
+        var spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+        spaceKey.onDown.add(this.jump, this);
+        game.input.onDown.add(this.jump, this);
+        this.pipes = game.add.group(); 
+        this.timer = game.time.events.loop(2000, this.addRowOfPipes, this); 
+        this.score = 0;
+        this.labelScore = game.add.text(game.width-20, 20, "0", { font: "30px VT323", fill: "#3D3D3D" }); 
+        this.jumpSound = game.add.audio('jump'); 
+        this.bird.anchor.setTo(0,0); 
 
-        this.changePosition = function(posX, posY) {
-            _posX = posX;
-            _posY = posY;
-            this.refresh();
-        }
+    },
+    update: function(){
+    if (this.bird.y > 200 || this.bird.y<0)
+        this.restartGame();
+    game.physics.arcade.overlap(
+    this.bird, this.pipes, this.hitPipe, null, this);
+    if (this.bird.angle < 20)
+        this.bird.angle += 1; 
+    },
+    jump: function() {
+        if (this.bird.alive == false)
+            return;
+    // Add a vertical velocity to the bird
+        this.bird.body.velocity.y = -175;
+        this.jumpSound.play();
+        // Create an animation on the bird
+        var animation = game.add.tween(this.bird);
 
-        this.posX = function() { return _posX; }
-        this.posY = function() { return _posY; }
-        this.special = function() { return _special; }
+        // Change the angle of the bird to -20° in 100 milliseconds
+        animation.to({angle: -20}, 100);
 
-        this.id = function () {
-            return '#' + _posY + _posX;
-        }
+        // And start the animation
+        animation.start(); 
+},
+    hitPipe: function() {
+        // If the bird has already hit a pipe, do nothing
+        // It means the bird is already falling off the screen
+        if (this.bird.alive == false)
+            return;
 
-        this.onDatPlace = function() {
-            return _posX == _x && _posY == _y;
-        }
+        // Set the alive property of the bird to false
+        this.bird.alive = false;
 
-        this.refresh = function() {
-            var ctx = $(this.id())[0].getContext('2d');
-            _offsetX = -_x*(_img.width/_columns);
-            _offsetY = -_y*(_img.height/_rows);
-            if(!_special) {
-                ctx.drawImage(_img, _offsetX, _offsetY);
-                if(displayHelp) {
-                    ctx.font = "12pt Arial";
-                    ctx.fillStyle = "rgb(255,255,255)";
-                    ctx.strokeStyle = "rgb(255,255,255)";
-                    ctx.globalAlpha = 0.5;
-                    ctx.strokeText("#"+_x+_y, 5, _img.height/_rows - 5);
-                    ctx.globalAlpha = 1.0;
-                }
-            } else {
-                ctx.fillStyle = '#000';
-                ctx.fillRect(0,0,ctx.canvas.width,ctx.canvas.height);
+        // Prevent new pipes from appearing
+        game.time.events.remove(this.timer);
+
+        // Go through all the pipes, and stop their movement
+        this.pipes.forEach(function(p){
+            p.body.velocity.x = 0;
+        }, this);
+    }, 
+// Restart the game
+    restartGame: function() {
+        // Start the 'main' state, which restarts the game
+        game.state.start('main');
+    },
+    addOnePipe: function(x, y) {
+        // Create a pipe at the position x and y
+        var pipe = game.add.sprite(x, y, 'pipe');
+
+        // Add the pipe to our previously created group
+        this.pipes.add(pipe);
+
+        // Enable physics on the pipe 
+        game.physics.arcade.enable(pipe);
+
+        // Add velocity to the pipe to make it move left
+        pipe.body.velocity.x = -200; 
+
+        // Automatically kill the pipe when it's no longer visible 
+        pipe.checkWorldBounds = true;
+        pipe.outOfBoundsKill = true;
+    },
+    
+    addRowOfPipes: function() {
+        // Randomly pick a number between 1 and 5
+        // This will be the hole position
+        var hole = Math.floor(Math.random() * 4) + 1;
+
+        // Add the 6 pipes 
+        // With one big hole at position 'hole' and 'hole + 1'
+        for (var i = 0; i < 7; i++){
+            if (i != hole && i != hole+1){
+              if(game.width<600){
+                this.addOnePipe(game.width, i * 33);   
+            }
+              else{
+                this.addOnePipe(400, i * 33); 
+              }
             }
         }
+        this.score+=1;
+        this.labelScore.text = this.score-1;
     }
-})();
+    
+};
 
-var imageParts = [];
-var clicks = 0;
-var displayHelp = false;
 
-function setImage(url, rows, columns) {
-    var img = new Image;
-    img.onload = function() {
-        for(var i = 0; i < rows; ++i) {
-            for(var j = 0; j < columns; ++j) {
-                var ctx = $('#'+i+j)[0].getContext('2d');
-                var imgPart;
-                ctx.canvas.height = img.height/rows;
-                ctx.canvas.width = img.width/columns;
 
-                if(i == rows - 1 && j == columns - 1)
-                    imgPart = new imagePart(j,i,rows,columns,img,true);
-                else
-                    imgPart = new imagePart(j,i,rows,columns,img,false);
 
-                imgPart.refresh();
-                imageParts.push(imgPart);
-            }
-        }
-    };
-    img.src = url;
-}
-
-function createTable(rows,columns) {
-    $('#canvasTable').remove();
-    var table = $('<table></table>')
-        .attr({
-            id : 'canvasTable',
-            border : 0,
-            cellspacing : 0,
-            cellpadding : 0
-        });
-    for(var i = 0; i < rows; ++i) {
-        var tr = $('<tr></tr>');
-        for(var j = 0; j < columns; ++j) {
-            var td = $('<td></td>')
-                .append($('<canvas></canvas>')
-                        .addClass('imagePart')
-                        .attr({id : ''+i+j}))
-                .addClass('tableCell');
-            $(tr).append(td);
-        }
-        $(table).append(tr);
-    }
-    $('#puzzle').append(table);
-}
-
-function getImgPart(x,y) {
-    for(var i in imageParts) {
-        if(imageParts[i].posX() == x && imageParts[i].posY() == y) {
-            return imageParts[i];
-        }
-    }
-}
-
-function getImgPartById(id) {
-    for(var i in imageParts) {
-        if(imageParts[i].id() == '#' + id) {
-            return imageParts[i];
-        }
-    }
-}
-
-function switchParts(x1, y1, x2, y2) {
-    var imgPart1 = getImgPart(x1,y1);
-    var imgPart2 = getImgPart(x2,y2);
-
-    if(imgPart1 !== imgPart2) {
-        imgPart1.changePosition(x2,y2);
-        imgPart2.changePosition(x1,y1);
-    }
-}
-
-function clickOn(id) {
-    var imgPart = getImgPartById(id);
-    var special;
-
-    for(var i in imageParts) {
-        if(imageParts[i].special())
-            special = imageParts[i];
-    }
-
-    if(special === imgPart)
-        return false;
-
-    if(special.posX() == imgPart.posX() || special.posY() == imgPart.posY()) {
-        var diffX = special.posX() - imgPart.posX();
-        var diffY = special.posY() - imgPart.posY();
-        var signX = diffX < 0 ? -1 : 1;
-        var signY = diffY < 0 ? -1 : 1;
-
-        for(var i = 0; i < Math.max(Math.abs(diffX), Math.abs(diffY)); ++i) {
-            switchParts(special.posX(), special.posY(),
-                    diffX != 0 ? special.posX() - signX : special.posX(),
-                    diffY != 0 ? special.posY() - signY : special.posY());
-        }
-        return true;
-    }
-    return false;
-}
-
-function randomize(rows, columns, iteration) {
-     i = 0;
-     interval = setInterval(function() {
-         var rand1 = Math.floor(Math.random() * rows);
-         var rand2 = Math.floor(Math.random() * columns);
-         if(clickOn("" + rand1 + rand2)) i++;
-         if(iteration == i) clearInterval(interval);
-     }, 7);
-}
-
-function setClicks(clicks_) {
-    clicks = clicks_;
-    $('#clicks').text(clicks);
-}
-
-function load(rows, columns, url) {
-    if(url == "" || rows == 0 || columns == 0)
-        return;
-
-    imageParts = [];
-    createTable(rows,columns);
-    setImage(url, rows, columns);
-
-    $('.imagePart').click( function() {
-        if(clickOn(this.id)) {
-            setClicks(clicks+1);
-            if(checkWin(rows, columns)) {
-                alert('done right');
-                setClicks(0);
-            }
-        }
-    });
-}
-
-function checkWin(rows, columns) {
-    var win = true;
-    for(var obj in imageParts) {
-        win &= imageParts[obj].onDatPlace();
-    }
-    return win;
-}
-
-$(document).ready(function() {
-    var rows = 4, columns = 4;
-    load(rows,columns,"http://c300221.r21.cf1.rackcdn.com/ren-magritte-memory-of-a-voyage-1952-1355064662_b.jpg");
-    randomize(rows, columns, 100);
-
-    $('#displayHelp').change( function() {
-        displayHelp = !displayHelp;
-        for(var i in imageParts) {
-            imageParts[i].refresh();
-        }
-    });
-
-    $('#randomize').click( function() {
-        setClicks(0);
-        randomize(rows, columns, 100);
-    });
-});
+game = new Phaser.Game(window.innerWidth, 200, Phaser.CANVAS, "game");
+game.state.add("main", mainState);
+game.state.start("main");
